@@ -6,6 +6,7 @@ export default defineConfig(({ mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), ''))
 
   return {
-  plugins: [react(), enquiryApi()],
+    base: process.env.GITHUB_PAGES === 'true' ? '/Apex-Advisory-LLP-Website/' : '/',
+    plugins: [react(), enquiryApi()],
   }
 })

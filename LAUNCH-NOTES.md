@@ -1,6 +1,12 @@
 # Launch notes
 
-This is a website preview, not a verified professional practice website. The contact form is wired to a server-side MailerSend integration for `parv.sharmaa@outlook.com`; delivery remains disabled until a MailerSend token and verified sender address are configured. The website does not keep an enquiry database. Cookie settings use a first-party `apex_cookie_consent` cookie and a one-year browser-storage fallback to remember the visitor's choice. No session ID, authentication, analytics or advertising cookies are configured. Do not collect sensitive client records here.
+This is a website preview, not a verified professional practice website. The GitHub Pages build is static and disables the enquiry form; visitors are directed to the displayed email address. The local and Vercel builds use a server-side MailerSend integration for `parv.sharmaa@outlook.com`. The website does not keep an enquiry database. Cookie settings use a first-party `apex_cookie_consent` cookie and a one-year browser-storage fallback to remember the visitor's choice. No session ID, authentication, analytics or advertising cookies are configured. Do not collect sensitive client records here.
+
+## GitHub Pages
+
+- The GitHub Pages workflow builds the site at `/Apex-Advisory-LLP-Website/` and publishes the static `dist` output.
+- GitHub Pages cannot run the MailerSend API route, so the public Pages build intentionally does not accept enquiry submissions. Use a serverless host such as Vercel to enable the form.
+- Repository source visibility and website visibility are separate. This repository must be public on the current GitHub plan; the published Pages site is also public.
 
 ## Enquiry email setup
 
