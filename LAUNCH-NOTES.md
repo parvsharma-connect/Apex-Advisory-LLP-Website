@@ -1,6 +1,6 @@
 # Launch notes
 
-This is a website preview, not a verified professional practice website. The GitHub Pages build is static and disables the enquiry form; visitors are directed to the displayed email address. The local and Vercel builds use a server-side MailerSend integration for `parv.sharmaa@outlook.com`. The website does not keep an enquiry database. Cookie settings use a first-party `apex_cookie_consent` cookie and a one-year browser-storage fallback to remember the visitor's choice. No session ID, authentication, analytics or advertising cookies are configured. Do not collect sensitive client records here.
+This is a website preview, not a verified professional practice website. The GitHub Pages build is static and disables the enquiry form and assistant; visitors are directed to the displayed email address. The local and Vercel builds use a server-side MailerSend integration for `parv.sharmaa@outlook.com`. The website does not keep an enquiry database. Cookie settings use a first-party `apex_cookie_consent` cookie and a one-year browser-storage fallback to remember the visitor's choice. No session ID, authentication, analytics or advertising cookies are configured. Do not collect sensitive client records here.
 
 ## GitHub Pages
 
@@ -18,6 +18,13 @@ This is a website preview, not a verified professional practice website. The Git
 - Until the API key and verified sender are configured, the form returns a clear configuration error and directs visitors to the displayed contact email. Do not claim delivery until the provider accepts the message.
 - MailerSend processes submitted name, business email, category and message to deliver the email. Review its current data-processing terms, set access and retention practices, and disclose them before collecting real client enquiries.
 
+## Website assistant setup
+
+- The floating assistant posts the visitor's recent chat messages to `/api/assistant`. The server sends those messages with a small set of verified site facts to the configured Ollama chat endpoint, using `qwen3:8b` by default. The prompt restricts replies to site facts, instructs it to decline professional advice, and directs it to fall back when the site does not support an answer; this reduces hallucinations but cannot guarantee they never occur.
+- For local development, install and run Ollama, pull `qwen3:8b`, copy `.env.example` to `.env.local`, and keep `OLLAMA_BASE_URL=http://127.0.0.1:11434`. Restart `npm run dev` after changing environment variables.
+- Vercel cannot reach the developer's local Ollama service. To enable the assistant on Vercel, deploy Qwen/Ollama to a secured, reachable model host and set `OLLAMA_BASE_URL`, `OLLAMA_MODEL` and, if used, `OLLAMA_API_KEY` as server-side Vercel environment variables. Never put the model URL credentials in frontend variables. Do not expose an unauthenticated Ollama server to the public internet.
+- Chat content is sent to the configured model host to generate replies. Review and disclose that provider's data use and retention before enabling the assistant publicly. Visitors should not send confidential client, financial, identity or tax information.
+
 ## Confirm before launch
 
 - Verify the LLP's exact legal name, registration details, address, monitored privacy contact, business contact information and locations.
@@ -28,7 +35,7 @@ This is a website preview, not a verified professional practice website. The Git
 - Verify current Indian tax, GST, LLP and DPDP statements against official sources. The [MeitY Gazette notification for the DPDP Rules, 2025](https://www.meity.gov.in/static/uploads/2025/11/53450e6e5dc0bfa85ebd78686cadad39.pdf) gives staged commencement dates; verify the Act commencement notifications and applicable provisions again on the actual launch date.
 - If enabling enquiry delivery, use server-side validation, spam controls, restricted access, an approved mail or form processor, documented retention/deletion and incident handling. Collect only necessary data; do not add a public upload field for PAN, Aadhaar, bank records, returns, invoices or client documents. An acknowledgement checkbox alone is not automatically valid legal consent.
 - Document what data the form collects, purpose, recipients/processors, retention, access and a monitored privacy contact. Update the Privacy Policy before enabling delivery.
-- The current site loads Google Fonts and Unsplash images from third-party domains. Review their privacy terms or host approved assets locally and adjust CSP if the asset sources change. No analytics, advertising trackers, embedded maps or chat widgets are configured.
+- The current site loads Google Fonts and Unsplash images from third-party domains. Review their privacy terms or host approved assets locally and adjust CSP if the asset sources change. No analytics, advertising trackers or embedded maps are configured.
 - Set `SITE_URL` to the production origin during build and verify canonical URLs, sitemap and robots directives.
 - On the selected hosting provider, configure HTTP-to-HTTPS redirection, a valid TLS certificate, DNS/domain MFA and the headers in `public/_headers`. That file is recognized by some static hosts, not all. Verify the deployed response headers and CSP in browser developer tools; remove or adjust any source the site no longer needs. Enable HSTS only after HTTPS is reliably enforced; add subdomains only if all of them support HTTPS.
 - Check mobile layouts, keyboard operation, labels, contrast, all links, 404 behavior, CSP violations, security headers, metadata and form behavior on the deployed host.

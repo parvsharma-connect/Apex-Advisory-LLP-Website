@@ -1,5 +1,5 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { ArrowRight, ArrowUpRight, Menu, X, ChevronDown, BriefcaseBusiness, ChartNoAxesCombined, Scale, ShieldCheck, Landmark, Network, Mail, Phone, MapPin } from 'lucide-react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, MessageCircle, Send, Menu, X, ChevronDown, BriefcaseBusiness, ChartNoAxesCombined, Scale, ShieldCheck, Landmark, Network, Mail, Phone, MapPin } from 'lucide-react';
 import { FIRM_DETAILS, SERVICES_DATA, INDUSTRIES_DATA, ARTICLES_DATA } from './data/mockData';
 import { getPageMeta, normalizePath } from './siteRoutes';
 
@@ -10,13 +10,13 @@ const navItems = [
   { label: 'About', href: '/about/', links: [{ label: 'Our approach', href: '/about/' }, { label: 'Contact', href: '/contact/' }] },
 ];
 const serviceIcons = [BriefcaseBusiness, Scale, ChartNoAxesCombined, ShieldCheck, Landmark, Network];
-const heroImage = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=960&q=78';
 const heroPhrases = ['Accounting with clarity.', 'Tax with confidence.', 'Advisory for growth.'];
 const currentYear = new Date().getFullYear();
 const isGitHubPages = import.meta.env.VITE_GITHUB_PAGES === 'true';
 
 type AppProps = { initialPath?: string };
 const siteHref = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`;
+const isNavItemActive = (item:typeof navItems[number],path:string) => path===item.href||path.startsWith(item.href)||item.links.some(link=>path===link.href);
 
 function getCurrentRoute(initialPath?: string) {
   if (initialPath) return normalizePath(initialPath);
@@ -30,6 +30,7 @@ function App({ initialPath }: AppProps) {
   const path = getCurrentRoute(initialPath);
   const [menu, setMenu] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [assistantOpen,setAssistantOpen]=useState(false);
   const meta = getPageMeta(path);
   const service = SERVICES_DATA.find(item => path === `/services/${item.slug}/`);
   const industry = INDUSTRIES_DATA.find(item => path === `/industries/${item.slug}/`);
@@ -75,13 +76,13 @@ function App({ initialPath }: AppProps) {
     <header className="firm-header" onMouseLeave={() => setMenu('')}>
       <nav className="firm-nav" aria-label="Main navigation">
         <a className="firm-brand" href={siteHref('/')} onClick={() => setMenu('')}><span className="brand-mark" aria-hidden="true">A</span><span>APEX <i>ADVISORY</i></span></a>
-        <div className="desktop-nav">{navItems.map(item => <div className="nav-item-wrap" key={item.label} onMouseEnter={() => setMenu(item.label)}><button className={menu === item.label ? 'active' : ''} aria-expanded={menu === item.label} onMouseEnter={() => setMenu(item.label)} onFocus={() => setMenu(item.label)} onClick={() => setMenu(menu === item.label ? '' : item.label)}>{item.label}<ChevronDown size={12}/></button></div>)}</div>
+        <div className="desktop-nav"><a className={`nav-home${path==='/'?' active':''}`} aria-current={path==='/'?'page':undefined} href={siteHref('/')} onMouseEnter={() => setMenu('')} onFocus={() => setMenu('')}>Home</a><a className={`nav-simple${isNavItemActive(navItems[2],path)?' active':''}`} aria-current={isNavItemActive(navItems[2],path)?'page':undefined} href={siteHref('/insights/')} onMouseEnter={() => setMenu('')} onFocus={() => setMenu('')}>Insights</a>{navItems.filter(item=>item.label!=='Insights').map(item => {const current=isNavItemActive(item,path);return <div className="nav-item-wrap" key={item.label} onMouseEnter={() => setMenu(item.label)}><button className={menu===item.label||current?'active':''} aria-current={current?'page':undefined} aria-expanded={menu === item.label} onMouseEnter={() => setMenu(item.label)} onFocus={() => setMenu(item.label)} onClick={() => setMenu(menu === item.label ? '' : item.label)}>{item.label}<ChevronDown size={12}/></button></div>})}</div>
         <a className="nav-cta" href={siteHref('/contact/')}>Start a conversation <ArrowUpRight size={14}/></a>
         <button className="mobile-toggle" aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={mobileOpen} onClick={() => setMobileOpen(!mobileOpen)}>{mobileOpen ? <X size={20}/> : <Menu size={20}/>}</button>
       </nav>
       {menu && <div className="firm-menu" onMouseEnter={() => setMenu(menu)}><div className="firm-menu-inner"><div><span className="eyebrow">Explore</span><h2>{menu}</h2><a className="text-link" href={siteHref(navItems.find(item => item.label === menu)?.href ?? '/')}>View all {menu.toLowerCase()} <ArrowRight size={14}/></a></div><div className="firm-menu-links">{navItems.find(item => item.label === menu)?.links.map(entry => <a key={entry.href} href={siteHref(entry.href)} onClick={() => setMenu('')}>{entry.label}<ArrowUpRight size={14}/></a>)}</div></div></div>}
     </header>
-    {mobileOpen && <div className="mobile-nav">{navItems.map(item => <a key={item.label} href={siteHref(item.href)} onClick={() => setMobileOpen(false)}>{item.label}<ArrowRight size={17}/></a>)}<a className="mobile-cta" href={siteHref('/contact/')} onClick={() => setMobileOpen(false)}>Start a conversation <ArrowUpRight size={15}/></a></div>}
+    {mobileOpen && <div className="mobile-nav"><a className={path==='/'?'active':''} aria-current={path==='/'?'page':undefined} href={siteHref('/')} onClick={() => setMobileOpen(false)}>Home<ArrowRight size={17}/></a><a className={isNavItemActive(navItems[2],path)?'active':''} aria-current={isNavItemActive(navItems[2],path)?'page':undefined} href={siteHref('/insights/')} onClick={() => setMobileOpen(false)}>Insights<ArrowRight size={17}/></a>{navItems.filter(item=>item.label!=='Insights').map(item => {const current=isNavItemActive(item,path);return <a className={current?'active':''} aria-current={current?'page':undefined} key={item.label} href={siteHref(item.href)} onClick={() => setMobileOpen(false)}>{item.label}<ArrowRight size={17}/></a>})}<a className="mobile-cta" href={siteHref('/contact/')} onClick={() => setMobileOpen(false)}>Start a conversation <ArrowUpRight size={15}/></a></div>}
     <main id="top" onClick={() => menu && setMenu('')}>
       {path === '/' && <HomePage/>}
       {path === '/services/' && <ServicesPage/>}
@@ -93,9 +94,10 @@ function App({ initialPath }: AppProps) {
       {path === '/about/' && <AboutPage/>}
       {path === '/contact/' && <ContactPage/>}
       {path === '/privacy/' && <LegalPage title="Privacy Policy" eyebrow="Website information" lead="This starter policy is a drafting aid. Confirm the legal entity, contact details, forms, hosting, analytics and retention practices before publication." sections={[
-        ['Information collected', isGitHubPages ? 'This GitHub Pages site is static; the enquiry form is disabled and this website does not collect enquiry submissions. The hosting provider may log technical request data such as IP address, browser type and request time. If you contact the firm by email, your message is handled by your and the recipient’s email providers.' : 'When email delivery is configured, submitting the business enquiry form sends your name, business email, enquiry category and optional message to the firm’s inbox through MailerSend, its email delivery provider. The website does not keep a database of enquiries. MailerSend processes the information to deliver the message and may retain it under its policies. Do not submit confidential client records or sensitive financial or identity information. The hosting provider may also log technical request data such as IP address, browser type and request time. Until delivery is configured, the form will show an error instead of claiming the enquiry was sent.'],
+        ['Information collected', isGitHubPages ? 'This GitHub Pages site is static; the enquiry form and assistant are disabled, and this website does not collect enquiry or chat submissions. The hosting provider may log technical request data such as IP address, browser type and request time. If you contact the firm by email, your message is handled by your and the recipient’s email providers.' : 'When email delivery is configured, submitting the business enquiry form sends your name, business email, enquiry category and optional message to the firm’s inbox through MailerSend, its email delivery provider. The website does not keep a database of enquiries. MailerSend processes the information to deliver the message and may retain it under its policies. Do not submit confidential client records or sensitive financial or identity information. The hosting provider may also log technical request data such as IP address, browser type and request time. Until delivery is configured, the form will show an error instead of claiming the enquiry was sent.'],
         ['Cookies', 'This website uses a first-party apex_cookie_consent cookie and browser storage to remember your cookie choice for one year. Choose Essential only to disable optional cookies, or Allow cookies to accept optional cookies. Cookie settings lets you change your choice. No session ID, login, analytics or advertising cookie is configured.'],
-        ['Third-party resources', 'This frontend has no analytics, advertising trackers, map embeds or chat widgets configured. Pages load fonts from Google Fonts and some images from Unsplash; those providers may receive technical request information, including your IP address. Review their privacy terms or host approved assets locally before launch, and confirm whether the selected host sets cookies.'],
+        ['AI website assistant', isGitHubPages ? 'The assistant is disabled on this static site.' : 'If enabled, your chat message and a short recent conversation context are sent to the server-side configured Ollama-compatible model host to generate a reply. The site does not store chat logs in an application database. The model host may process or retain messages under its own terms; confirm its identity and retention practices before public launch. Do not submit confidential client, financial, identity, tax or bank information.'],
+        ['Third-party resources', 'This frontend has no analytics, advertising trackers or map embeds. Pages load fonts from Google Fonts and some images from Unsplash; those providers may receive technical request information, including your IP address. If the AI assistant is enabled, its configured model host also receives the chat context needed to generate replies. Review providers’ privacy terms before launch and confirm whether the selected site host sets cookies.'],
         ['Sharing and retention', isGitHubPages ? 'This static site does not collect or deliver form submissions. Messages sent by email may be processed or retained by the sender’s and recipient’s email providers under their respective policies.' : 'When configured, submitted enquiries are delivered to parv.sharmaa@outlook.com through MailerSend. The website has no enquiry database; MailerSend and the recipient email provider may process or retain messages under their respective policies. Confirm access controls, retention periods and deletion procedures before publication.'],
         ['Your choices and contact', 'Applicable rights and how to exercise them depend on the firm’s location and the relevant law. Replace this paragraph with reviewed details and a monitored privacy contact before launch.'],
       ]}/>}
@@ -116,11 +118,58 @@ function App({ initialPath }: AppProps) {
       <PageMetadata title={meta.title} description={meta.description}/>
     </main>
     <CookiePreferences/>
+    <WebsiteAssistant open={assistantOpen} onOpenChange={setAssistantOpen}/>
+    <BackToTopButton hidden={assistantOpen}/>
   </div>;
 }
 
 function Eyebrow({children}:{children:ReactNode}) { return <div className="eyebrow">{children}</div> }
-function PageIntro({eyebrow,title,lead}:{eyebrow:string;title:ReactNode;lead:string}) { return <section className="page-intro"><div><Eyebrow>{eyebrow}</Eyebrow><h1>{title}</h1><p>{lead}</p></div><div className="page-intro-aside"><span>APEX / ADVISORY</span><span>Clarity. Confidence. Growth.</span></div></section> }
+type AssistantMessage={role:'assistant'|'user';text:string};
+function WebsiteAssistant({open,onOpenChange}:{open:boolean;onOpenChange:(open:boolean)=>void}){
+  const [question,setQuestion]=useState('');
+  const [messages,setMessages]=useState<AssistantMessage[]>([{role:'assistant',text:'Hello! I can help you navigate Apex’s website and explain the services listed here. I can’t give professional advice. Please don’t share confidential or financial details.'}]);
+  const [thinking,setThinking]=useState(false);
+  const logRef=useRef<HTMLDivElement>(null);
+  useEffect(()=>{logRef.current?.scrollTo({top:logRef.current.scrollHeight,behavior:'smooth'});},[messages,thinking]);
+  if(isGitHubPages)return null;
+  const ask=(text:string)=>{
+    const prompt=text.trim();
+    if(!prompt||thinking)return;
+    const conversation=[...messages,{role:'user' as const,text:prompt}];
+    setMessages(conversation);
+    setQuestion('');
+    setThinking(true);
+    void fetch('/api/assistant',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:conversation.slice(-8).map(message=>({role:message.role,content:message.text}))})})
+      .then(async response=>{
+        const result=await response.json() as {ok?:boolean;answer?:string;message?:string};
+        if(!response.ok||!result.ok)throw new Error(result.message||'The assistant is unavailable right now. Please use the Contact page.');
+        setMessages(current=>[...current,{role:'assistant',text:result.answer||'I couldn’t find verified information about that on this website. Please contact the firm through the Contact page.'}]);
+      })
+      .catch(error=>setMessages(current=>[...current,{role:'assistant',text:error instanceof Error?error.message:'The assistant is unavailable right now. Please use the Contact page.'}]))
+      .finally(()=>setThinking(false));
+  };
+  return <div className="assistant-widget">
+    {open&&<section className="assistant-panel" aria-label="Apex website assistant">
+      <header className="assistant-header"><div className="assistant-avatar"><MessageCircle size={17}/></div><div><strong>Apex assistant</strong></div><button type="button" aria-label="Close assistant" onClick={()=>onOpenChange(false)}><X size={18}/></button></header>
+      <div className="assistant-log" ref={logRef} aria-live="polite">{messages.map((message,index)=><div className={`assistant-message assistant-message--${message.role}`} key={`${index}-${message.role}`}><p>{message.text}</p>{message.role==='assistant'&&index===0&&<div className="assistant-prompts"><button type="button" onClick={()=>ask('What services are listed?')}>Explore services</button><button type="button" onClick={()=>ask('How can I make an enquiry?')}>Make an enquiry</button></div>}</div>)}{thinking&&<div className="assistant-message assistant-message--assistant"><p className="assistant-typing">Looking that up…</p></div>}</div>
+      <form className="assistant-input" onSubmit={event=>{event.preventDefault();ask(question);}}><input aria-label="Ask a question" value={question} onChange={event=>setQuestion(event.target.value)} placeholder="Ask about this website…" maxLength={300}/><button type="submit" aria-label="Send question" disabled={!question.trim()||thinking}><Send size={16}/></button></form>
+      <p className="assistant-footnote">Website guide · No professional advice</p>
+    </section>}
+    <button type="button" className={`assistant-launcher${open?' is-open':''}`} aria-expanded={open} onClick={()=>onOpenChange(!open)}>{open?<X size={19}/>:<MessageCircle size={19}/>}<span>{open?'Close':'Ask Apex'}</span></button>
+  </div>;
+}
+function BackToTopButton({hidden}:{hidden:boolean}){
+  const [visible,setVisible]=useState(false);
+  useEffect(()=>{
+    const update=()=>setVisible(window.scrollY>320);
+    update();
+    window.addEventListener('scroll',update,{passive:true});
+    return()=>window.removeEventListener('scroll',update);
+  },[]);
+  if(!visible||hidden)return null;
+  return <button type="button" className="back-to-top" aria-label="Back to top" title="Back to top" onClick={()=>window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}><ArrowUp size={18}/></button>;
+}
+function PageIntro({eyebrow,title,lead}:{eyebrow:string;title:ReactNode;lead:string}) { return <section className="page-intro"><div><button type="button" className="page-back" onClick={()=>{if(window.history.length>1)window.history.back();else window.location.href=siteHref('/');}}><ArrowLeft size={14}/> Back</button><Eyebrow>{eyebrow}</Eyebrow><h1>{title}</h1><p>{lead}</p></div><div className="page-intro-aside"><span>APEX / ADVISORY</span><span>Clarity. Confidence. Growth.</span></div></section> }
 function SectionHeading({eyebrow,title,copy}:{eyebrow:string;title:ReactNode;copy?:string}) { return <div className="section-top"><div><Eyebrow>{eyebrow}</Eyebrow><h2>{title}</h2></div>{copy&&<p>{copy}</p>}</div> }
 function TypedPhrases({phrases}:{phrases:string[]}) {
   const [displayed, setDisplayed] = useState('');
@@ -159,11 +208,33 @@ function TypedPhrases({phrases}:{phrases:string[]}) {
 
   return <><span className="sr-only">{fullText}</span><em className="typing-line" aria-hidden="true"><span>{displayed}</span><span className="typing-cursor">|</span></em></>;
 }
+const heroSlides = [
+  { src: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1280&q=78', alt: 'Modern city towers seen from below', caption: 'Built around your ambition' },
+  { src: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1280&q=78', alt: 'Sunlit meeting room prepared for a team discussion', caption: 'Partnership, by design' },
+  { src: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1280&q=78', alt: 'Colleagues working together around a table', caption: 'Clear thinking, shared purpose' },
+];
+function HeroImageSlider(){
+ const [activeSlide, setActiveSlide] = useState(0);
+ const [interactionPaused, setInteractionPaused] = useState(false);
+ const reducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ useEffect(()=>{
+  if(interactionPaused || reducedMotion) return;
+  const timer=window.setTimeout(()=>setActiveSlide(current=>(current+1)%heroSlides.length),6000);
+  return ()=>window.clearTimeout(timer);
+ },[activeSlide,interactionPaused,reducedMotion]);
+ const showSlide=(index:number)=>setActiveSlide((index+heroSlides.length)%heroSlides.length);
+ return <div className={`hero-image hero-slider${interactionPaused?' is-paused':''}`} role="region" aria-roledescription="carousel" aria-label="Apex Advisory in pictures" onMouseEnter={()=>setInteractionPaused(true)} onMouseLeave={()=>setInteractionPaused(false)} onFocus={()=>setInteractionPaused(true)} onBlur={(event)=>{if(!event.currentTarget.contains(event.relatedTarget as Node|null))setInteractionPaused(false)}}>
+  <img key={activeSlide} className="hero-slide-image" src={heroSlides[activeSlide].src} fetchPriority={activeSlide===0?'high':'auto'} decoding="async" alt={heroSlides[activeSlide].alt}/>
+  <div className="hero-motion-art" aria-hidden="true"><svg viewBox="0 0 520 380" preserveAspectRatio="none"><path className="motion-route" d="M40 315 C120 275 125 205 205 222 S300 280 350 185 S425 105 485 65"/><circle className="motion-node" r="5"><animateMotion dur="8s" repeatCount="indefinite" path="M40 315 C120 275 125 205 205 222 S300 280 350 185 S425 105 485 65"/></circle></svg></div>
+  <div className="hero-slider-pager"><div className="hero-slider-dots" aria-label="Choose image">{heroSlides.map((slide,index)=><button key={slide.src} type="button" aria-label={`Show image ${index+1}: ${slide.caption}`} aria-current={index===activeSlide?'true':undefined} className={index===activeSlide?'active':''} onClick={()=>showSlide(index)}/>)}</div></div>
+  <div className="image-label" aria-live="off"><span>{heroSlides[activeSlide].caption}</span></div>
+ </div>;
+}
 function HomePage(){
  const featured=SERVICES_DATA.slice(0,3), insights=ARTICLES_DATA.slice(0,3);
  return <>
   <div className="notice"><span>Website preview · business details and service scope require verification</span><span>India-focused draft</span></div>
-  <section className="hero"><div className="hero-text"><div className="eyebrow"><span className="eyebrow-dot"/> Apex Advisory LLP</div><h1>We deliver<TypedPhrases phrases={heroPhrases}/></h1><p>Draft website for accounting, tax and business advisory services. Actual qualifications, service scope and firm details must be confirmed before publication.</p><div className="hero-actions"><a className="button-primary" href={siteHref('/services/')}>Explore service areas <ArrowRight size={16}/></a><a className="text-link" href={siteHref('/about/')}>How we work <ArrowUpRight size={15}/></a></div><div className="hero-caption"><span>Practical support for business decisions.</span><span>PREVIEW</span></div></div><div className="hero-image"><img src={heroImage} srcSet="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=640&q=78 640w, https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=960&q=78 960w, https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1280&q=78 1280w" sizes="(max-width: 700px) calc(100vw - 48px), 54vw" fetchPriority="high" decoding="async" alt="Modern city towers seen from below"/><div className="hero-motion-art" aria-hidden="true"><svg viewBox="0 0 520 380" preserveAspectRatio="none"><path className="motion-route" d="M40 315 C120 275 125 205 205 222 S300 280 350 185 S425 105 485 65"/><circle className="motion-node" r="5"><animateMotion dur="8s" repeatCount="indefinite" path="M40 315 C120 275 125 205 205 222 S300 280 350 185 S425 105 485 65"/></circle></svg><span>INSIGHT IN MOTION</span></div><div className="image-label"><span>Built around your ambition</span><span>APEX / ADVISORY</span></div></div></section>
+  <section className="hero"><div className="hero-text"><div className="eyebrow"><span className="eyebrow-dot"/> Apex Advisory LLP</div><h1>We deliver<TypedPhrases phrases={heroPhrases}/></h1><p>Draft website for accounting, tax and business advisory services. Actual qualifications, service scope and firm details must be confirmed before publication.</p><div className="hero-actions"><a className="button-primary" href={siteHref('/services/')}>Explore service areas <ArrowRight size={16}/></a><a className="text-link" href={siteHref('/about/')}>How we work <ArrowUpRight size={15}/></a></div><div className="hero-caption"><span>Practical support for business decisions.</span><span>PREVIEW</span></div></div><HeroImageSlider/></section>
   <section className="intro-band"><Eyebrow>A partner at every inflection point</Eyebrow><h2>Good advice makes<br/>the complex <em>clear.</em></h2><div className="intro-copy"><p>Markets shift. Regulations evolve. Growth creates new questions. We bring an independent perspective and a practical path forward—so your next move is grounded in what matters.</p><a className="text-link" href={siteHref('/about/')}>Meet Apex Advisory <ArrowUpRight size={15}/></a></div></section>
   <section className="services-section"><SectionHeading eyebrow="What we do" title={<>Expertise for the<br/><em>whole picture.</em></>} copy="From a single critical question to a complex transformation, we bring the right experience around the table."/><ServiceCards items={featured}/><div className="center-link"><a className="text-link" href={siteHref('/services/')}>Explore all services <ArrowRight size={15}/></a></div></section>
   <section className="approach-section"><div className="approach-image"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=78" srcSet="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=480&q=78 480w, https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=78 900w" sizes="(max-width: 700px) 100vw, 50vw" loading="lazy" decoding="async" alt="Sunlit meeting room prepared for a team discussion"/><span className="image-label">Partnership, by design</span></div><div className="approach-copy"><Eyebrow>Our approach</Eyebrow><h2>Senior minds.<br/><em>Shared purpose.</em></h2><p>We stay close to the people making the decisions. That means clear analysis, honest challenge and recommendations your team can put into action.</p><ul><li><span>01</span>Listen before we prescribe</li><li><span>02</span>Bring evidence to every decision</li><li><span>03</span>Stay accountable through delivery</li></ul><a className="text-link" href={siteHref('/about/')}>Get to know us <ArrowUpRight size={15}/></a></div></section>
@@ -185,9 +256,30 @@ function AboutPage(){return <><PageIntro eyebrow="About Apex" title={<>Independe
 function ContactPage(){return <><PageIntro eyebrow="Contact" title={<>Let’s talk about<br/><em>what’s next.</em></>} lead={isGitHubPages ? 'This GitHub Pages version is a static site. Please email the firm for enquiries.' : 'Share a business enquiry and we’ll get back to you at your business email.'}/><section className="contact-page"><div className="contact-details"><Eyebrow>Firm contact details</Eyebrow><div><Mail size={18}/><span><small>Email</small>{FIRM_DETAILS.email}</span></div><div><Phone size={18}/><span><small>Telephone</small>{FIRM_DETAILS.phone}</span></div><div><MapPin size={18}/><span><small>Location</small>{FIRM_DETAILS.globalPresence}</span></div><p className="contact-note">Telephone and location details are still placeholders. Do not include confidential client, financial, identity, tax or bank information.</p></div><BusinessEnquiryForm/></section></>}
 function BusinessEnquiryForm(){
   const [status,setStatus]=useState('');
+  const [toast,setToast]=useState<{message:string;tone:'error'|'success'}|null>(null);
+  const [attempted,setAttempted]=useState(false);
   const [ready,setReady]=useState(false);
   const [sending,setSending]=useState(false);
   useEffect(()=>{setReady(true);},[]);
+  useEffect(()=>{
+    if(!toast)return;
+    const timer=window.setTimeout(()=>setToast(null),4200);
+    return ()=>window.clearTimeout(timer);
+  },[toast]);
+  const handleInvalid=(event:FormEvent<HTMLFormElement>)=>{
+    event.preventDefault();
+    setAttempted(true);
+    const field=event.target as HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement;
+    const label=field.labels?.[0]?.textContent?.replace('(optional)','').trim()||'This field';
+    const message=field.validity.valueMissing
+      ? `${label} is required.`
+      : field.validity.typeMismatch
+        ? 'Enter a valid business email address.'
+        : field.validity.tooLong
+          ? `${label} is too long. Shorten it and try again.`
+          : `Please check ${label.toLowerCase()} and try again.`;
+    setToast({message,tone:'error'});
+  };
   const submitEnquiry=async(event:FormEvent<HTMLFormElement>)=>{
     event.preventDefault();
     const form=event.currentTarget;
@@ -197,20 +289,24 @@ function BusinessEnquiryForm(){
     try{
       const response=await fetch('/api/enquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:fields.get('name'),email:fields.get('email'),category:fields.get('category'),message:fields.get('message'),website:fields.get('website')})});
       const result=await response.json() as {ok?:boolean;message?:string};
-      if(!response.ok||!result.ok){setStatus(result.message||'We could not send your enquiry. Please email parv.sharmaa@outlook.com.');return;}
-      setStatus(result.message||'Your enquiry has been received.');
+      if(!response.ok||!result.ok){const message=result.message||'We could not send your enquiry. Please email parv.sharmaa@outlook.com.';setStatus(message);setToast({message,tone:'error'});return;}
+      const message=result.message||'Your enquiry has been sent successfully.';
+      setStatus(message);
+      setToast({message,tone:'success'});
       form.reset();
     }catch{
-      setStatus('We could not reach the enquiry service. Please email parv.sharmaa@outlook.com.');
+      const message='We could not reach the enquiry service. Please email parv.sharmaa@outlook.com.';
+      setStatus(message);
+      setToast({message,tone:'error'});
     }finally{setSending(false);}
   };
   if (isGitHubPages) {
     return <div className="demo-form"><Eyebrow>Business enquiry</Eyebrow><p className="form-notice">Online enquiry submissions are not available on this GitHub Pages site. Please email {FIRM_DETAILS.email} directly. Do not send confidential client records or sensitive financial or identity information.</p></div>;
   }
-  return <form className="demo-form" onSubmit={submitEnquiry}>
-    <Eyebrow>Business enquiry</Eyebrow>
-    <p className="form-notice">Your enquiry is emailed to the firm. Do not include PAN, Aadhaar, bank details, tax returns, invoices or other confidential documents.</p>
-    <fieldset className="demo-fields" disabled={!ready}><legend>Enquiry details</legend>
+  return <><form className={`demo-form${attempted?' was-validated':''}`} onSubmit={submitEnquiry} onInvalidCapture={handleInvalid}>
+    <div className="form-heading"><Eyebrow>Business enquiry</Eyebrow><h2>Tell us what you need.</h2><p>Share a few details and our team will follow up with you.</p></div>
+    <p className="form-notice"><ShieldCheck size={16}/><span>Your enquiry is emailed securely to the firm. Please don’t include PAN, Aadhaar, bank details, tax returns or confidential documents.</span></p>
+    <fieldset className="demo-fields" disabled={!ready}><legend>Enquiry details <span>Required fields are marked *</span></legend>
     <div className="form-grid"><label htmlFor="enquiry-name">Full name<input id="enquiry-name" name="name" autoComplete="name" required maxLength={100}/></label>
     <label htmlFor="enquiry-email">Business email<input id="enquiry-email" name="email" type="email" autoComplete="email" required maxLength={254}/></label></div>
     <label htmlFor="enquiry-category">Enquiry category<select id="enquiry-category" name="category" defaultValue="" required><option value="" disabled>Select a category</option><option>Accounting and bookkeeping</option><option>Tax and GST assistance</option><option>Business advisory</option><option>LLP compliance support</option><option>Other business enquiry</option></select></label>
@@ -220,7 +316,7 @@ function BusinessEnquiryForm(){
     <button type="submit" className="button-primary" disabled={!ready||sending}>{sending?'Sending…':'Send enquiry'} <ArrowUpRight size={15}/></button>
     </fieldset>
     <p className="form-status" aria-live="polite">{status}</p>
-  </form>;
+  </form>{toast&&<div className={`validation-toast validation-toast--${toast.tone}`} role={toast.tone==='error'?'alert':'status'}><span className="validation-toast-mark" aria-hidden="true">{toast.tone==='success'?'✓':'!'}</span><span>{toast.message}</span><button type="button" aria-label="Dismiss notification" onClick={()=>setToast(null)}>×</button></div>}</>;
 }
 function CookiePreferences(){
   const [open,setOpen]=useState(false);
@@ -245,7 +341,7 @@ function CookiePreferences(){
   if(!open)return null;
   return <section className="cookie-consent" aria-labelledby="cookie-title" aria-describedby="cookie-description">
     <div><Eyebrow>Privacy settings</Eyebrow><h2 id="cookie-title">Choose your cookie settings</h2><p id="cookie-description">We use a first-party cookie and browser storage to remember your choice for one year. This website has no login, session ID, analytics or advertising cookies. <a href={siteHref('/privacy/')}>Read the Privacy Policy</a>.</p></div>
-    <div className="cookie-actions"><button className="cookie-essential" onClick={()=>choose('essential')}>Essential only</button><button className="button-primary" onClick={()=>choose('accepted')}>Allow cookies</button></div>
+    <div className="cookie-actions"><button className="button-primary" onClick={()=>choose('accepted')}>Allow cookies</button><button className="cookie-essential" onClick={()=>choose('essential')}>Essential only</button><button type="button" className="cookie-cancel" onClick={()=>setOpen(false)}>Cancel</button></div>
   </section>;
 }
 function LegalPage({title,eyebrow,lead,sections}:{title:string;eyebrow:string;lead:string;sections:[string,string][]}){return <><PageIntro eyebrow={eyebrow} title={<>{title}<br/><em>Apex Advisory LLP.</em></>} lead={lead}/><article className="article-body legal-body">{sections.map(([heading,copy])=><section key={heading}><h2>{heading}</h2><p>{copy}</p></section>)}<p className="contact-note">Draft for website planning. Last reviewed: 28 October 2026. Replace this date and obtain jurisdiction-specific review before publication.</p></article></>}
