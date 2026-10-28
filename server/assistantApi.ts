@@ -106,14 +106,14 @@ export async function handleAssistantRequest(request: RequestWithBody, response:
     return
   }
 
-  const baseUrl = (process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434').replace(/\/$/, '')
+  const baseUrl = (process.env.OLLAMA_PROXY_URL || process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434').replace(/\/$/, '')
   const model = process.env.OLLAMA_MODEL || 'qwen3:8b'
   try {
     const ollamaResponse = await fetch(`${baseUrl}/api/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(process.env.OLLAMA_API_KEY ? { Authorization: `Bearer ${process.env.OLLAMA_API_KEY}` } : {}),
+        ...((process.env.OLLAMA_PROXY_API_KEY || process.env.OLLAMA_API_KEY) ? { Authorization: `Bearer ${process.env.OLLAMA_PROXY_API_KEY || process.env.OLLAMA_API_KEY}` } : {}),
       },
       body: JSON.stringify({
         model,
@@ -132,8 +132,8 @@ export async function handleAssistantRequest(request: RequestWithBody, response:
       respond(response, 503, { ok: false, message: 'The assistant is unavailable right now. Please use the Contact page.' })
       return
     }
-    const result = await ollamaResponse.json() as { message?: { content?: unknown } }
-    const answer = typeof result.message?.content === 'string' ? result.message.content.trim().slice(0, 1200) : ''
+    const result = await ollamaResponse.json() as { message?: { content?: unknown }; answer?: unknown }
+    const answer = typeof result.answer === 'string' ? result.answer.trim().slice(0, 1200) : typeof result.message?.content === 'string' ? result.message.content.trim().slice(0, 1200) : ''
     respond(response, 200, { ok: true, answer: answer || FALLBACK })
   } catch {
     respond(response, 503, { ok: false, message: 'The assistant is unavailable right now. Please use the Contact page.' })
